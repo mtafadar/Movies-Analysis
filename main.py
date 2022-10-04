@@ -23,16 +23,14 @@ import objecttier
 #
 def retrieve_movie(dbConn):
     print()
-    name = input("Enter movie id:  ")
+    limit = input("Enter movie id:  ")
+    Tagline= input("Enter movie Tag:  ")
 
-    stations = objecttier.get_movie_details(dbConn, name)
+    stations = objecttier.set_tagline(dbConn, limit, Tagline)
+    print(stations);
   
-    if stations is None:  # error
-        print("**Internal error: retrieve_stations")
-    else:
-        print("  Avg rating:", f"{stations.Avg_Rating:.2f}", "(0..10)")
-        print("  Budget:", f"${stations.Budget:,}", "(USD)")
-        print(stations.Tagline)
+    
+        
         
 
     

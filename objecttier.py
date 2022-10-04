@@ -77,6 +77,11 @@ class MovieRating:
   @property
   def Num_Reviews(self):
     return self._Num_Reviews; 
+
+
+  @property
+  def Avg_Rating(self):
+    return self._Avg_Rating
      
     
 
@@ -359,15 +364,24 @@ Where M.Movie_ID = ?;
 #          msg is already output).
 #
 def get_top_N_movies(dbConn, N, min_num_reviews):
-
-Sql =   """Select M.Movie_ID, Title,  Date(Release_Date), count(Rating) as  Num, Avg(Rating) as avgV From Movies M
+  sql =   """Select M.Movie_ID, Title,  strftime('%Y', Release_Date), count(Rating) as  Num, Avg(Rating) as avgV From Movies M
 left join Ratings on M.Movie_ID = Ratings.Movie_ID
 Group BY M.Movie_ID
 Having  Num >= ?
 order By AvgV  DESC
-Limit ?;
-"""; 
+Limit ?;"""; 
 
+  rows= datatier.select_n_rows(dbConn, sql, [min_num_reviews, N]); 
+  if rows is None:
+    return []
+   
+  top_rating = [];
+
+  for row in rows:
+    temp = MovieRating(row[0], row[1],row[2], row[3], row[4])
+
+    top_rating.append(temp);
+  return top_rating;
 
    
     
@@ -387,7 +401,27 @@ Limit ?;
 #          an internal error occurred).
 #
 def add_review(dbConn, movie_id, rating):
-   pass
+
+  SqlCheck = """Select Movie_ID from Movies 
+Where Movie_ID = ?;""" 
+
+  rowC = datatier.select_one_row(dbConn, SqlCheck, [movie_id]);
+
+  if(len(rowC) == 0):
+    return 0;
+
+
+  
+  sql = """INSERT INTO Ratings
+VALUES (?, ?);"""
+
+  rows= datatier.perform_action(dbConn, sql, [movie_id, rating]);
+
+  if(rows > -1):
+    return 1
+  else:
+    return 0;
+
 
 
 ##################################################################
@@ -406,4 +440,45 @@ def add_review(dbConn, movie_id, rating):
 #          an internal error occurred).
 #
 def set_tagline(dbConn, movie_id, tagline):
-   pass
+
+  SqlCheck = """Select Movie_ID from Movies 
+      Where Movie_ID = ? ;""" 
+  rowC = datatier.select_one_row(dbConn, SqlCheck, [movie_id] );
+  
+  if(len(rowC) == 0):
+    return 0;
+
+
+  
+  TaglineTableCheck = """Select Movie_ID from  Movie_Taglines 
+ Where Movie_ID = ? """
+
+  rowCC = datatier.select_one_row(dbConn, TaglineTableCheck, [movie_id]);
+
+
+
+  sqlInsert =   """INSERT INTO Movie_Taglines
+  VALUES(?, ?);"""
+
+  if(len(rowC) > 0 and len(rowCC) == 0):
+    temp= datatier.perform_action(dbConn,sqlInsert , [movie_id,tagline ]);
+    
+  
+  sql = """UPDATE Movie_Taglines
+ SET Tagline=?
+ Where Movie_ID = ?;"""
+
+  rows= datatier.perform_action(dbConn, sql, [tagline, movie_id]);
+
+  if(rows > -1):
+    return 1;
+
+  else:
+    return 0
+
+  
+
+  
+
+  
+   

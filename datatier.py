@@ -39,7 +39,6 @@ def select_one_row(dbConn, sql, parameters=None):
         dbCursor.execute(sql, parameters)
         row = dbCursor.fetchone()
         if (row == None):
-           
             return ();
         return row
     except Exception as err:
