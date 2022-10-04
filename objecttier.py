@@ -359,6 +359,16 @@ Where M.Movie_ID = ?;
 #          msg is already output).
 #
 def get_top_N_movies(dbConn, N, min_num_reviews):
+
+Sql =   """Select M.Movie_ID, Title,  Date(Release_Date), count(Rating) as  Num, Avg(Rating) as avgV From Movies M
+left join Ratings on M.Movie_ID = Ratings.Movie_ID
+Group BY M.Movie_ID
+Having  Num >= ?
+order By AvgV  DESC
+Limit ?;
+"""; 
+
+
    
     
 
