@@ -28,7 +28,6 @@ class Movie:
     self._Movie_ID = id;
     self._Title = title;
     self._Release_Year = r_year
-
   @property 
   def Movie_ID(self):
     return self._Movie_ID; 
@@ -65,7 +64,6 @@ class MovieRating:
   @property 
   def Movie_ID(self):
     return self._Movie_ID;
-
   @property 
   def Title(self):
     return self._Title;
@@ -77,19 +75,11 @@ class MovieRating:
   @property
   def Num_Reviews(self):
     return self._Num_Reviews; 
-
-
   @property
   def Avg_Rating(self):
     return self._Avg_Rating
      
     
-
-
-    
-    
-    
-
 
 ##################################################################
 #
@@ -172,9 +162,6 @@ class MovieDetails:
   def Production_Companies(self):
     return self._Production_Companies; 
   
-    
-
-    
 
     
 
@@ -195,12 +182,6 @@ def num_movies(dbConn):
     print("Error in num_movies", err)
     return -1;
     
-    
-
-  
-  
-   
-
 
 ##################################################################
 # 
@@ -221,11 +202,7 @@ def num_reviews(dbConn):
    
     
   
-   
-
   
-
-
 ##################################################################
 #
 # get_movies:
@@ -251,13 +228,6 @@ Order by Title ASC"""
      movie_names.append(movie);
    return movie_names;
      
-  
-
-  
-
-  
-  
-
 
 ##################################################################
 #
@@ -274,6 +244,10 @@ Order by Title ASC"""
 #          case an error msg is already output).
 #
 def get_movie_details(dbConn, movie_id):
+
+  # With this quory I  am grabbing the Movie_ID, Title, release Date, 
+  #Runtime, original_language, Budget, Revenue, number of rating,  avg 
+  # Rating and Tagline from the Database 
   sql = """
    Select M.Movie_ID, Title, Date(Release_Date), Runtime, 
 original_Language, Budget, Revenue,  count(Rating), Avg(Rating), Tagline
@@ -282,6 +256,8 @@ left join Ratings  on  M.Movie_ID = Ratings.Movie_ID
 left join Movie_Taglines on M.Movie_ID = Movie_Taglines.Movie_ID
 Where M.Movie_ID = ?;
   """
+
+  #With this query I am grabbing  distinct genre   and and distinct company name. Given that, each of this can be in  a list of values so I group them 
 
   sql2 = """
     Select   group_concat(distinct (Genre_Name)),  group_concat(distinct(Company_Name)) From Movies M 
@@ -292,44 +268,43 @@ left join Companies on  Movie_Production_Companies.Company_ID = Companies.Compan
 Where M.Movie_ID = ?;
   """
 
-  rows1 = datatier.select_one_row(dbConn, sql, [movie_id]);
+  # Calling Select one row since it is   individual or one value
+  rows1 = datatier.select_one_row(dbConn, sql, [movie_id]); 
+  # Calling N row since the values are in  list of touples
   rows2 = datatier.select_n_rows(dbConn, sql2, [movie_id]); 
 
-
-  if(rows1[0] == None):
+  if(rows1[0] == None): #if there are any error
     return None;
+  if(len(rows1) == 0): #is no values were return
+    return None;
+  if(len(rows2) == 0): # if no values returned from rows2 
+    return None;
+
+  mylist =  (0, 0.0); #Default values
   
-  if(len(rows1) == 0):
-    return None;
-
-  if(len(rows2) == 0):
-    return None;
-
-  mylist =  (0, 0.0);
-
-  if rows1[8] is None:
-    mylist=0.0;
+  if rows1[8] is None:  # if avg review is None
+    mylist=0.0;    # Set this default value
   else:
-    mylist = rows1[8];
+    mylist = rows1[8]; # else keep it  the original 
   
-  if(rows1[9] == None):
+  if(rows1[9] == None): #if tag is None then its empty 
     tagline = ""
     
   else:
-    tagline = rows1[9];
+    tagline = rows1[9]; # if tag is  is not None
 
   mylist2 = [];
 
-  if(rows2[0][0] == None):
+  if(rows2[0][0] == None): # list are None  then the genre are empty 
       mylist2 = [];
 
   else:
-    for r in rows2:
+    for r in rows2:  #adding to a list 
       val = r[0].split(",");
       for j in val:
        mylist2.append(j);
       
-  mylist2.sort();
+  mylist2.sort(); # Sorting the list so that genre come in alphabetical order
   mylist3 = [];
 
   if(rows2[0][1] == None):
@@ -341,10 +316,10 @@ Where M.Movie_ID = ?;
        mylist3.append(j);
       
     mylist3.sort();
-
+  #using the Movie Details object
   movie_d = MovieDetails(rows1[0], rows1[1], rows1[2], rows1[3], rows1[4], rows1[5], rows1[6], rows1[7], mylist, tagline,mylist2, mylist3)
   
-  return movie_d; 
+  return movie_d;  # returning the Movie details object 
 
        
 
@@ -374,9 +349,9 @@ Limit ?;""";
   rows= datatier.select_n_rows(dbConn, sql, [min_num_reviews, N]); 
   if rows is None:
     return []
-   
+    
   top_rating = [];
-
+  
   for row in rows:
     temp = MovieRating(row[0], row[1],row[2], row[3], row[4])
 
@@ -404,22 +379,20 @@ def add_review(dbConn, movie_id, rating):
 
   SqlCheck = """Select Movie_ID from Movies 
 Where Movie_ID = ?;""" 
-
+  
   rowC = datatier.select_one_row(dbConn, SqlCheck, [movie_id]);
 
-  if(len(rowC) == 0):
+  if(len(rowC) == 0): # if movie_Id not found 
     return 0;
-
-
-  
+  # Otherwise insert the  rating 
   sql = """INSERT INTO Ratings
 VALUES (?, ?);"""
 
   rows= datatier.perform_action(dbConn, sql, [movie_id, rating]);
 
-  if(rows > -1):
+  if(rows > -1): # if one or more   raw modified 
     return 1
-  else:
+  else: 
     return 0;
 
 
@@ -440,30 +413,28 @@ VALUES (?, ?);"""
 #          an internal error occurred).
 #
 def set_tagline(dbConn, movie_id, tagline):
-
   SqlCheck = """Select Movie_ID from Movies 
       Where Movie_ID = ? ;""" 
-  rowC = datatier.select_one_row(dbConn, SqlCheck, [movie_id] );
   
-  if(len(rowC) == 0):
+  checkOnMovieTable = datatier.select_one_row(dbConn, SqlCheck, [movie_id] );
+  
+  if(len(checkOnMovieTable) == 0): # If the movie_ID does not exist on  Movies Table
     return 0;
-
-
   
   TaglineTableCheck = """Select Movie_ID from  Movie_Taglines 
  Where Movie_ID = ? """
 
-  rowCC = datatier.select_one_row(dbConn, TaglineTableCheck, [movie_id]);
-
-
+  checkOnTagTable = datatier.select_one_row(dbConn, TaglineTableCheck, [movie_id]); 
 
   sqlInsert =   """INSERT INTO Movie_Taglines
   VALUES(?, ?);"""
 
-  if(len(rowC) > 0 and len(rowCC) == 0):
+  # If the movie exist on Movies table but not in Tag table then 
+  #Insert the movie
+  if(len(checkOnMovieTable) > 0 and len(checkOnTagTable) == 0):
     temp= datatier.perform_action(dbConn,sqlInsert , [movie_id,tagline ]);
     
-  
+   #Updating the taglines
   sql = """UPDATE Movie_Taglines
  SET Tagline=?
  Where Movie_ID = ?;"""
