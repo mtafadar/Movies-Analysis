@@ -354,6 +354,7 @@ Limit ?;""";
   
   for row in rows:
     temp = MovieRating(row[0], row[1],row[2], row[3], row[4])
+  
 
     top_rating.append(temp);
   return top_rating;
