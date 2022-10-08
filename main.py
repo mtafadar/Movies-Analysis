@@ -1,90 +1,89 @@
+#Name: Mosrour Tafadar 
+#University of Illinois at Chicago
+# Fall 2022 
+
+
+
+
 
 import sqlite3
 import objecttier
-
 
 ##################################################################  
 # 
 # retrieve_stations
 #
 def retrieve_movie(dbConn):
-    print()
     movie_pattern = input("Enter movie name (wildcards _ and % supported): ")
-
   
     movie_name_values = objecttier.get_movies(dbConn, movie_pattern);
-    num_movie_found = 0;
-    if(movie_name_values == None):
-      print();
-      print("# of movies found:", f"{ num_movie_found:,}");
-      print(); 
-      return;
-      
     num_movie_found = len(movie_name_values);
+    print();
+    print("# of movies found:", num_movie_found )
   
-    print();
-    print("# of movies found:", f"{ num_movie_found:,}")
-    print();
-
-    if(num_movie_found > 100):
+    if(movie_name_values == None or num_movie_found == 0):
+      print();
+      return;
+    
+    elif(num_movie_found > 100):
       print("There are too many movies to display, please narrow your search and try again...");
       print();
       return;
-    for  movie in movie_name_values:
-      print(movie.Movie_ID, ": ", movie.Title, "(" + movie.Release_Year + ")" )
-    print();   
+
+    else:  
+      for  movie in movie_name_values:
+        print(movie.Movie_ID, ": ", movie.Title, "(" + movie.Release_Year + ")" )
+      print();   
+
+  
     
 def retrieve_movie_details(dbConn):
-  print();
+  
   movie_id = input("Enter  movie id: "); 
   print();
   movie_details_values = objecttier.get_movie_details(dbConn, movie_id );
   
-
-  
-
   if(movie_details_values == None):
       print("No such movie...");
-      print(); 
-      return;
+      
 
   #  print("  # of stops:", f"{fetchStops[0]:,}")
-    
-  print(movie_details_values.Movie_ID, ":", movie_details_values.Title);
-  print("   Release date:", movie_details_values.Release_Date);
-  print("   Runtime:", movie_details_values.Runtime, "(mins)");
-  print("   Orig language:", movie_details_values.Original_Language);
-  #print("   Budget:", "$"+str(movie_details_values.Budget),"(USD)");
-  print("   Budget:", "$"+  f"{movie_details_values.Budget:,}", "(USD)" )
-  print("   Revenue:", "$"+  f"{movie_details_values.Revenue:,}", "(USD)" )
-  #print("   Revenue:", "$"+str(movie_details_values.Revenue),"(USD)");
-  print("   Num reviews:", movie_details_values.Num_Reviews);
-  average_rating = "{:.2f}".format(movie_details_values.Avg_Rating)
-  print("   Avg rating:",average_rating , "(0..10)");
-  #print("   Genres:", movie_details_values.Genres);
-  genres_value = movie_details_values.Genres
-  print("   Genres: ", end ='')
-  for val in genres_value:
-    print(val + ", " , end ='' );
-  print();
-
-  print("   Production companies: ",end ='' )
-  production_companies_value =movie_details_values.Production_Companies;
-
-  for prod in production_companies_value:
-    print(prod + ", " , end ='' )
-
-  print();
-
-  print("   Tagline:", movie_details_values.Tagline);
-
+  else:  
+    print(movie_details_values.Movie_ID, ":", movie_details_values.Title);
+    print("   Release date:", movie_details_values.Release_Date);
+    print("   Runtime:", movie_details_values.Runtime, "(mins)");
+    print("   Orig language:", movie_details_values.Original_Language);
+    #print("   Budget:", "$"+str(movie_details_values.Budget),"(USD)");
+    print("   Budget:", "$"+  f"{movie_details_values.Budget:,}", "(USD)" )
+    print("   Revenue:", "$"+  f"{movie_details_values.Revenue:,}", "(USD)" )
+    #print("   Revenue:", "$"+str(movie_details_values.Revenue),"(USD)");
+    print("   Num reviews:", movie_details_values.Num_Reviews);
+    average_rating = "{:.2f}".format(movie_details_values.Avg_Rating)
+    print("   Avg rating:",average_rating , "(0..10)");
+    #print("   Genres:", movie_details_values.Genres);
+    genres_value = movie_details_values.Genres
+    print("   Genres: ", end ='')
+    for val in genres_value:
+      print(val + ", " , end ='' );
+    print();
+  
+    print("   Production companies: ",end ='' )
+    production_companies_value =movie_details_values.Production_Companies;
+  
+    for prod in production_companies_value:
+      print(prod + ", " , end ='' )
+  
+    print();
+  
+    print("   Tagline:", movie_details_values.Tagline);
+  
   print();
   
 
 
 
 def retrieve_N_movie_with_reviews(dbConn):
-  print()
+  
   n = int(input("N? "))
   if(n <= 0):
     print("Please enter a positive value for N...");
@@ -113,7 +112,6 @@ def retrieve_N_movie_with_reviews(dbConn):
 
 
 def insert_rating(dbConn):
-  print();
   rating = int(input("Enter rating (0..10): "))
   if(rating < 0 or rating > 10):
     print("Invalid rating...")
@@ -121,9 +119,6 @@ def insert_rating(dbConn):
     return
 
   movie_id = int(input("Enter  movie id: "))
-
-  if(isinstance(movie_id, int)):
-    return
 
   
 
@@ -144,7 +139,6 @@ def insert_rating(dbConn):
 
 
 def set_tagline(dbConn):
-  print();
   tag =  input("tagline? ");
   movie_id = int(input("movie id? "))
   set_tagline = objecttier.set_tagline(dbConn, movie_id, tag);
@@ -153,6 +147,7 @@ def set_tagline(dbConn):
     print()
     print("No such movie...")
     print()
+    return
 
   if(set_tagline == 1):
     print()
@@ -196,17 +191,22 @@ print();
 cmd = input("Please enter a command (1-5, x to exit): ")
 while cmd != "x":
     if cmd == "1":
+      print()
       retrieve_movie(dbConn)
     if(cmd == "2"):
+      print();
       retrieve_movie_details(dbConn);
 
     if(cmd == "3"):
+      print()
       retrieve_N_movie_with_reviews(dbConn)
 
     if(cmd == "4"):
+      print();
       insert_rating(dbConn)
 
     if(cmd == "5"):
+      print();
       set_tagline(dbConn)
       
     cmd = input("Please enter a command (1-5, x to exit): ")
